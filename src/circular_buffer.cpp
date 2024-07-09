@@ -22,22 +22,34 @@ namespace ELB
 
   uint32_t CircularBuffer::GetCapacity()
   {
-    return 0;
+    return buffer_.size();
+  }
+
+  uint32_t CircularBuffer::GetSize()
+  {
+    uint32_t size = 0;
+
+    if (write_index_ >= read_index_)
+      size = write_index_ - read_index_;
+    else
+      size = buffer_.size() - write_index_ - read_index_;
+
+    return size;
   }
 
   uint32_t CircularBuffer::GetFreeSize()
   {
-    return 0;
+    return (buffer_.size() - GetSize());
   }
 
   bool CircularBuffer::IsEmpty()
   {
-    return false;
+    return (buffer_.size() == GetFreeSize());
   }
 
   bool CircularBuffer::IsFull()
   {
-    return false;
+    return (0 == GetFreeSize());
   }
 
   std::vector<char> CircularBuffer::Read(const uint32_t size)
