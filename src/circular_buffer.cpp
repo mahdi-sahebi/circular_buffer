@@ -1,4 +1,5 @@
-#include <exception>
+#include <algorithm>
+#include <stdexcept>
 #include "circular_buffer/circular_buffer.hpp"
 
 using namespace std;
@@ -6,8 +7,13 @@ using namespace std;
 namespace ELB
 {
 
-  CircularBuffer::CircularBuffer(const uint32_t capacity)
+  CircularBuffer::CircularBuffer(const uint32_t capacity) :
+    read_index_{0}, write_index_{0}
   {
+    if (0 == capacity)
+      throw std::invalid_argument("[CircularBuffer] Zero capacity allocation");
+
+    buffer_.resize(capacity);
   }
 
   CircularBuffer::~CircularBuffer()

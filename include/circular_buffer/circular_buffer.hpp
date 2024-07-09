@@ -1,6 +1,12 @@
 #ifndef ELB_CIRCULAR_BUFFER_H_
 #define ELB_CIRCULAR_BUFFER_H_
 
+// TODO(MN): Tests of is_empty/is_full
+// TODO(MN): Thread safety and its test, write/process/read - counter generator
+// TODO(MN): Read/Write/GetFreeSize test for two part mode
+// TODO(MN): Test of GetSize
+// TODO(MN): Read/Write simple array APIs
+
 #include <cstdbool>
 #include <cstdint>
 #include <vector>
