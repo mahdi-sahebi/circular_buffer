@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # add_subdirectory(src)
 
 option(BUILD_TESTS "To build the tests" OFF)
-if (BUILD_TEST)
+
+if (BUILD_TESTS)
   add_subdirectory(test)
 endif()

@@ -1,2 +1,8 @@
 set(sources test_circular_buffer.cpp)
-add_executable(${PROJECT_NAME} ${sources})
+set(test ${PROJECT_NAME}_test)
+
+add_executable(${test} ${sources})
+
+find_package(GTest REQUIRED)
+target_include_directories(${test} PRIVATE ${GTEST_INCLUDE_DIR})
+target_link_libraries(${test} GTest::gtest GTest::gtest_main)
