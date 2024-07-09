@@ -6,6 +6,7 @@
 // TODO(MN): Read/Write/GetFreeSize test for two part mode
 // TODO(MN): Test of GetSize
 // TODO(MN): Read/Write simple array APIs
+// TODO(MN): Verify write/read APIs data
 
 #include <cstdbool>
 #include <cstdint>
@@ -31,6 +32,7 @@ public:
 
 private:
   std::vector<char> buffer_;
+  const uint32_t capacity_;
   uint32_t read_index_;
   uint32_t write_index_;
 };

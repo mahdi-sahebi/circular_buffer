@@ -8,12 +8,15 @@ namespace ELB
 {
 
   CircularBuffer::CircularBuffer(const uint32_t capacity) :
-    read_index_{0}, write_index_{0}
+    read_index_{0}, write_index_{0}, capacity_{capacity}
   {
     if (0 == capacity)
       throw std::invalid_argument("[CircularBuffer] Zero capacity allocation");
 
     buffer_.resize(capacity);
+
+    if (capacity_ < capacity)
+      throw bad_alloc();// TODO(MN): Test
   }
 
   CircularBuffer::~CircularBuffer()
@@ -22,29 +25,27 @@ namespace ELB
 
   uint32_t CircularBuffer::GetCapacity()
   {
-    return buffer_.size();
+    return capacity_;
   }
 
   uint32_t CircularBuffer::GetSize()
   {
-    uint32_t size = 0;
+    uint32_t size = write_index_ - read_index_;
 
-    if (write_index_ >= read_index_)
-      size = write_index_ - read_index_;
-    else
-      size = buffer_.size() - write_index_ - read_index_;
+    if (write_index_ < read_index_)
+      size = capacity_ - write_index_ - read_index_;
 
     return size;
   }
 
   uint32_t CircularBuffer::GetFreeSize()
   {
-    return (buffer_.size() - GetSize());
+    return (capacity_ - GetSize());
   }
 
   bool CircularBuffer::IsEmpty()
   {
-    return (buffer_.size() == GetFreeSize());
+    return (capacity_ == GetFreeSize());
   }
 
   bool CircularBuffer::IsFull()
@@ -60,6 +61,21 @@ namespace ELB
 
   void CircularBuffer::Write(const std::vector<char>& data)
   {
+    uint32_t data_size = data.size();
+
+    if (data_size > GetFreeSize())
+      throw overflow_error("[CircularBuffer] Not enough space to write");
+    
+   
+      const uint32_t first_part_size = min(capacity_ - write_index_, data_size);
+      copy(begin(data), begin(data) + first_part_size, begin(buffer_) + write_index_);
+      write_index_ += first_part_size;
+
+      const uint32_t second_part_size = data_size - first_part_size;
+      if (second_part_size) {
+        copy(begin(data) + first_part_size, end(data), begin(buffer_));
+        write_index_ = (write_index_ + second_part_size) % capacity_;
+      }
   }
 
 }
