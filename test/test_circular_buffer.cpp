@@ -1,6 +1,7 @@
 #include <exception>
 #include <vector>
 #include "gtest/gtest.h"
+#include "circular_buffer/circular_buffer.hpp"
 
 
 using namespace std;
@@ -34,7 +35,7 @@ TEST(get_free, valid)
   constexpr uint32_t SIZE = 100;
   CircularBuffer buffer(SIZE);
 
-  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(SIZE, buffer.GetFreeSize());
 }
 
 TEST(write, overflow)
@@ -46,7 +47,7 @@ TEST(write, overflow)
   vector<char> data(20, 'a');
 
   EXPECT_THROW({
-    buffer.Write(data, data.size());
+    buffer.Write(data);
   }, overflow_error);
 
   EXPECT_EQ(SIZE, buffer.GetFreeSize());
@@ -60,7 +61,7 @@ TEST(write, valid)
   vector<char> data(7, 'a');
 
   EXPECT_NO_THROW({
-    buffer.Write(data, data.size());
+    buffer.Write(data);
   });
 
   EXPECT_EQ(SIZE - data.size(), buffer.GetFreeSize());
@@ -73,7 +74,7 @@ TEST(read, overflow)
   CircularBuffer buffer(SIZE);
 
   vector<char> data(20, 'a');
-  buffer.Write(data, data.size());
+  buffer.Write(data);
   EXPECT_EQ(SIZE - data.size(), buffer.GetFreeSize());
 
   EXPECT_THROW({
@@ -85,19 +86,23 @@ TEST(read, overflow)
 
 TEST(read, valid)
 {
-  CircularBuffer buffer(10);
-  vector<char> data(17, 'a');
+  constexpr uint32_t SIZE = 100;
+  CircularBuffer buffer(SIZE);
+
+  constexpr uint32_t WRITE_SIZE = 17;
+  constexpr uint32_t READ_SIZE = 8;
+  vector<char> data(WRITE_SIZE, 'a');
 
   EXPECT_NO_THROW({
-    buffer.write(data, data.size());
+    buffer.Write(data);
   });
   EXPECT_EQ(SIZE - data.size(), buffer.GetFreeSize());
 
   EXPECT_NO_THROW({
-    vector<char> data = buffer.Read(8);
+    data = buffer.Read(READ_SIZE);
   });
 
-  EXPECT_EQ(SIZE - data.size() + 8, buffer.GetFreeSize());
+  EXPECT_EQ(SIZE - WRITE_SIZE + READ_SIZE, buffer.GetFreeSize());
 }
 
 int main()
