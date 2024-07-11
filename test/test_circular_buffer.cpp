@@ -77,6 +77,10 @@ TEST(write, iterative)
   constexpr uint32_t CAPACITY = 1 * 1024 * 1024;
   CircularBuffer buffer(CAPACITY);
 
+  EXPECT_EQ(CAPACITY, buffer.GetFreeSize());
+  EXPECT_EQ(CAPACITY, buffer.GetCapacity());
+  EXPECT_EQ(0, buffer.GetSize());
+
   uint32_t total_size = CAPACITY;
 
   while (total_size) {
@@ -84,13 +88,17 @@ TEST(write, iterative)
 
     const uint32_t random_size = static_cast<uint32_t>(256 * (std::rand() / (float)RAND_MAX));
     const uint32_t write_size = std::min(random_size, buffer.GetFreeSize());
-    vector<char> data(write_size, 'a');
+    const vector<char> data(write_size, 'a');
 
     buffer.Write(data);
     total_size -= write_size;
 
     EXPECT_EQ(total_size, buffer.GetFreeSize());
   }
+
+  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(CAPACITY, buffer.GetCapacity());
+  EXPECT_EQ(CAPACITY, buffer.GetSize());
 }
 
 TEST(read, overflow)
