@@ -271,7 +271,7 @@ TEST(multithread, write)
   thread write_threads[THREADS_COUNT];
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
-    write_threads[index] = thread(write_process, buffer, WRITE_SIZE[index], WRITE_COUNT);
+    write_threads[index] = thread(write_process, std::ref(buffer), WRITE_SIZE[index], WRITE_COUNT);
   }
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
@@ -308,7 +308,7 @@ TEST(multithread, read)
   thread read_threads[THREADS_COUNT];
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
-    read_threads[index] = thread(read_process, buffer, READ_SIZE[index], READ_COUNT);
+    read_threads[index] = thread(read_process, std::ref(buffer), READ_SIZE[index], READ_COUNT);
   }
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
