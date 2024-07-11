@@ -193,6 +193,28 @@ TEST(status, clear)
   EXPECT_EQ(buffer.GetCapacity(), buffer.GetFreeSize());
 }
 
+TEST(status, is_empty)
+{
+  CircularBuffer buffer{13};
+
+  try {
+    EXPECT_TRUE(buffer.IsEmpty());
+  } catch (const std::exception& excp) {
+    std::cout << excp.what() << std::endl;
+    FAIL();
+  }
+
+  vector<char> data(7, 'a');
+  buffer.Write(data);
+  
+  try {
+    EXPECT_FALSE(buffer.IsEmpty());
+  } catch (const std::exception& excp) {
+    std::cout << excp.what() << std::endl;
+    FAIL();
+  }
+}
+
 TEST(multithread, write)
 {
   constexpr uint32_t WRITE_SIZE[]{74, 53};
