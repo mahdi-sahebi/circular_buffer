@@ -27,6 +27,7 @@ public:
   uint32_t GetFreeSize();
   bool IsEmpty();
   bool IsFull();
+  void Clear();
   std::vector<char> Read(const uint32_t size);
   void Write(const std::vector<char>& data);
 

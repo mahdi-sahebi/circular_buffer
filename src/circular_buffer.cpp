@@ -53,6 +53,12 @@ namespace ELB
     return (0 == GetFreeSize());
   }
 
+  void CircularBuffer::Clear()
+  {
+    write_index_ = 0;
+    read_index_ = 0;
+  }
+
   std::vector<char> CircularBuffer::Read(const uint32_t size)
   {
     uint32_t data_size = size;
