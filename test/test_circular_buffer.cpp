@@ -138,6 +138,40 @@ TEST(read, valid)
   EXPECT_EQ(SIZE - WRITE_SIZE + READ_SIZE, buffer.GetFreeSize());
 }
 
+TEST(read, iterative)
+{
+  std::srand(std::time(nullptr));
+
+  constexpr uint32_t CAPACITY = 1 * 1024 * 1024;
+  CircularBuffer buffer(CAPACITY);
+
+  vector<char> data(CAPACITY, 'a');
+  buffer.Write(data);
+  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(CAPACITY, buffer.GetCapacity());
+  EXPECT_EQ(CAPACITY, buffer.GetSize());
+
+  uint32_t total_size = CAPACITY;
+
+  while (total_size) {
+    EXPECT_EQ(total_size, buffer.GetFreeSize());
+
+    const uint32_t random_size = static_cast<uint32_t>(256 * (std::rand() / (float)RAND_MAX));
+    const uint32_t read_size = std::min(random_size, buffer.GetFreeSize());
+
+    const vector<char> data = buffer.Read(read_size);
+    EXPECT_EQ(read_size, data.size());
+    total_size -= read_size;
+
+    EXPECT_EQ(total_size, buffer.GetSize());
+  }
+  
+  EXPECT_EQ(CAPACITY, buffer.GetFreeSize());
+  EXPECT_EQ(CAPACITY, buffer.GetCapacity());
+  EXPECT_EQ(0, buffer.GetSize());
+}
+
+
 int main()
 {
   testing::InitGoogleTest();
