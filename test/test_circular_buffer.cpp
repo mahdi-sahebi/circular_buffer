@@ -1,5 +1,8 @@
-#include <exception>
 #include <vector>
+#include <algorithm>
+#include <cstdlib>
+#include <ctime>
+#include <stdexcept>
 #include "gtest/gtest.h"
 #include "circular_buffer/circular_buffer.hpp"
 
@@ -67,6 +70,28 @@ TEST(write, valid)
   EXPECT_EQ(SIZE - data.size(), buffer.GetFreeSize());
 }
 
+TEST(write, iterative)
+{
+  std::srand(std::time(nullptr));
+
+  constexpr uint32_t CAPACITY = 1 * 1024 * 1024;
+  CircularBuffer buffer(CAPACITY);
+
+  uint32_t total_size = CAPACITY;
+
+  while (total_size) {
+    EXPECT_EQ(total_size, buffer.GetFreeSize());
+
+    const uint32_t random_size = static_cast<uint32_t>(256 * (std::rand() / (float)RAND_MAX));
+    const uint32_t write_size = std::min(random_size, buffer.GetFreeSize());
+    vector<char> data(write_size, 'a');
+
+    buffer.Write(data);
+    total_size -= write_size;
+
+    EXPECT_EQ(total_size, buffer.GetFreeSize());
+  }
+}
 
 TEST(read, overflow)
 {
