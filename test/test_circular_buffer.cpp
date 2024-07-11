@@ -177,6 +177,22 @@ TEST(read, iterative)
   EXPECT_EQ(0, buffer.GetSize());
 }
 
+TEST(status, clear)
+{
+  CircularBuffer buffer{13};
+
+  vector<char> data(7, 'a');
+  buffer.Write(data);
+  EXPECT_NE(0, buffer.GetSize());
+
+  EXPECT_NO_THROW({
+    buffer.Clear();
+  });
+
+  EXPECT_EQ(0, buffer.GetSize());
+  EXPECT_EQ(buffer.GetCapacity(), buffer.GetFreeSize());
+}
+
 TEST(multithread, write)
 {
   constexpr uint32_t WRITE_SIZE[]{74, 53};
