@@ -55,7 +55,23 @@ namespace ELB
 
   std::vector<char> CircularBuffer::Read(const uint32_t size)
   {
+    uint32_t data_size = size;
+    if (size > GetSize())
+      throw out_of_range("[CircularBuffer] Not enough data to read");
+
+    // TODO(MN): Optimize return vector
     vector<char> data;
+
+    const uint32_t first_part_size = min(capacity_ - read_index_, data_size);
+    data.insert(cend(data), cbegin(buffer_) + read_index_, cbegin(buffer_) + read_index_ + first_part_size);
+    read_index_ += first_part_size;
+
+    const uint32_t second_part_size = data_size - first_part_size;
+    if (second_part_size) {
+      data.insert(cend(data), cbegin(buffer_), cbegin(buffer_) + second_part_size);
+      read_index_ = (read_index_ + second_part_size) % capacity_;
+    }
+
     return data;
   }
 

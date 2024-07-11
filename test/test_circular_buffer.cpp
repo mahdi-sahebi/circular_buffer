@@ -35,7 +35,7 @@ TEST(get_free, valid)
   constexpr uint32_t SIZE = 100;
   CircularBuffer buffer(SIZE);
 
-  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(SIZE, buffer.GetFreeSize());
 }
 
 TEST(write, overflow)
@@ -88,7 +88,10 @@ TEST(read, valid)
 {
   constexpr uint32_t SIZE = 100;
   CircularBuffer buffer(SIZE);
-  vector<char> data(17, 'a');
+
+  constexpr uint32_t WRITE_SIZE = 17;
+  constexpr uint32_t READ_SIZE = 8;
+  vector<char> data(WRITE_SIZE, 'a');
 
   EXPECT_NO_THROW({
     buffer.Write(data);
@@ -96,10 +99,10 @@ TEST(read, valid)
   EXPECT_EQ(SIZE - data.size(), buffer.GetFreeSize());
 
   EXPECT_NO_THROW({
-    vector<char> data = buffer.Read(8);
+    data = buffer.Read(READ_SIZE);
   });
 
-  EXPECT_EQ(SIZE - data.size() + 8, buffer.GetFreeSize());
+  EXPECT_EQ(SIZE - WRITE_SIZE + READ_SIZE, buffer.GetFreeSize());
 }
 
 int main()
