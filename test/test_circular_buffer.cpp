@@ -213,7 +213,7 @@ TEST(status, is_empty)
     FAIL();
   }
 }
-/*
+
 TEST(status, is_full)
 {
   constexpr auto BUFFER_SIZE{13};
@@ -237,6 +237,7 @@ TEST(status, is_full)
   }
 
   data.resize(BUFFER_SIZE - data.size());
+  buffer.Write(data);
 
   try {
     EXPECT_TRUE(buffer.IsFull());
@@ -248,7 +249,7 @@ TEST(status, is_full)
   EXPECT_EQ(0, buffer.GetFreeSize());
   EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
 }
-
+/*
 TEST(multithread, write)
 {
   constexpr uint32_t WRITE_SIZE[]{74, 53};
