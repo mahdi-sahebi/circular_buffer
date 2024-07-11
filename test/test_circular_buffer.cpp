@@ -10,8 +10,6 @@
 #include "circular_buffer/circular_buffer.hpp"
 
 
-// TODO(MN): Clear, is empty, is full, multhread write/read
-
 using namespace std;
 using namespace std::chrono;
 using namespace ELB;
@@ -213,6 +211,41 @@ TEST(status, is_empty)
     std::cout << excp.what() << std::endl;
     FAIL();
   }
+}
+
+TEST(status, is_full)
+{
+  constexpr auto BUFFER_SIZE{13};
+  CircularBuffer buffer{BUFFER_SIZE};
+
+  try {
+    EXPECT_FALSE(buffer.IsFull());
+  } catch (const std::exception& excp) {
+    std::cout << excp.what() << std::endl;
+    FAIL();
+  }
+
+  vector<char> data(7, 'a');
+  buffer.Write(data);
+  
+  try {
+    EXPECT_FALSE(buffer.IsFull());
+  } catch (const std::exception& excp) {
+    std::cout << excp.what() << std::endl;
+    FAIL();
+  }
+
+  data.resize(BUFFER_SIZE - data.size());
+
+  try {
+    EXPECT_TRUE(buffer.IsFull());
+  } catch (const std::exception& excp) {
+    std::cout << excp.what() << std::endl;
+    FAIL();
+  }
+
+  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
 }
 
 TEST(multithread, write)
