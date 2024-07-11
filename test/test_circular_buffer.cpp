@@ -10,6 +10,8 @@
 #include "circular_buffer/circular_buffer.hpp"
 
 
+// TODO(MN): Clear, is empty, is full, multhread write/read
+
 using namespace std;
 using namespace std::chrono;
 using namespace ELB;
@@ -175,7 +177,44 @@ TEST(read, iterative)
   EXPECT_EQ(0, buffer.GetSize());
 }
 
-// TODO(MN): Clear, is empty, is full
+TEST(multithread, write)
+{
+  constexpr uint32_t WRITE_SIZE[]{74, 53};
+  constexpr auto WRITE_COUNT{10000};
+  constexpr auto BUFFER_SIZE{WRITE_COUNT * (WRITE_SIZE[0] + WRITE_SIZE[1])};
+  CircularBuffer buffer{BUFFER_SIZE};
+
+  const auto write_process = [](CircularBuffer& buffer, const uint32_t write_size, uint32_t write_count)
+  {
+    const vector<char> cache(write_size);
+
+    while (write_count--) {
+      buffer.Write(cache);
+    }
+  };
+
+  constexpr uint32_t THREADS_COUNT{2};
+  thread write_threads[THREADS_COUNT];
+
+  for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
+    write_threads[index] = thread(write_process, buffer, WRITE_SIZE[index], WRITE_COUNT);
+  }
+
+  for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
+    if (write_threads[index].joinable()) {
+      write_threads[index].join();
+    }
+  }
+
+  EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
+  EXPECT_EQ(0, buffer.GetFreeSize());
+}
+
+TEST(multithread, read)
+{
+
+}
+
 TEST(multithread, verification)
 {
   constexpr auto TRANSFER_SIZE{1 * 1024 * 1024 * 1024};
