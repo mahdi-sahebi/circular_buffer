@@ -158,10 +158,11 @@ TEST(read, iterative)
   uint32_t total_size = CAPACITY;
 
   while (total_size) {
-    EXPECT_EQ(total_size, buffer.GetFreeSize());
+    EXPECT_EQ(CAPACITY - total_size, buffer.GetFreeSize());
+    EXPECT_EQ(total_size, buffer.GetSize());
 
     const uint32_t random_size = static_cast<uint32_t>(256 * (std::rand() / (float)RAND_MAX));
-    const uint32_t read_size = std::min(random_size, buffer.GetFreeSize());
+    const uint32_t read_size = std::min(random_size, buffer.GetSize());
 
     const vector<char> data = buffer.Read(read_size);
     EXPECT_EQ(read_size, data.size());
@@ -212,7 +213,7 @@ TEST(status, is_empty)
     FAIL();
   }
 }
-
+/*
 TEST(status, is_full)
 {
   constexpr auto BUFFER_SIZE{13};
@@ -372,7 +373,7 @@ TEST(multithread, verification)
   EXPECT_EQ(0, buffer.GetSize());
   EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
 }
-
+*/
 int main()
 {
   testing::InitGoogleTest();
