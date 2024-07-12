@@ -249,11 +249,11 @@ TEST(status, is_full)
   EXPECT_EQ(0, buffer.GetFreeSize());
   EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
 }
-/*
+
 TEST(multithread, write)
 {
   constexpr uint32_t WRITE_SIZE[]{74, 53};
-  constexpr auto WRITE_COUNT{10000};
+  constexpr auto WRITE_COUNT{100000};
   constexpr auto BUFFER_SIZE{WRITE_COUNT * (WRITE_SIZE[0] + WRITE_SIZE[1])};
   CircularBuffer buffer{BUFFER_SIZE};
 
@@ -285,7 +285,7 @@ TEST(multithread, write)
   EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
   EXPECT_EQ(0, buffer.GetFreeSize());
 }
-
+/*
 TEST(multithread, read)
 {
   constexpr uint32_t READ_SIZE[]{74, 53};

@@ -11,6 +11,8 @@
 #include <cstdbool>
 #include <cstdint>
 #include <vector>
+#include <mutex>
+
 
 namespace ELB
 {
@@ -36,6 +38,7 @@ private:
   const uint32_t capacity_;
   uint32_t read_index_;
   uint32_t write_index_;
+  std::recursive_mutex write_mutex_;
 };
 
 }

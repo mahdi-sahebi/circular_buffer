@@ -30,10 +30,15 @@ namespace ELB
 
   uint32_t CircularBuffer::GetSize()
   {
-    uint32_t size = write_index_ - read_index_;
+    write_mutex_.lock();
+    const uint32_t write_index = write_index_; 
+    write_mutex_.unlock();
 
-    if (write_index_ < read_index_)
-      size = capacity_ - write_index_ - read_index_;
+
+    uint32_t size = write_index - read_index_;
+
+    if (write_index < read_index_)
+      size = capacity_ - write_index - read_index_;
 
     return size;
   }
@@ -61,7 +66,8 @@ namespace ELB
 
   std::vector<char> CircularBuffer::Read(const uint32_t size)
   {
-    uint32_t data_size = size;
+    const uint32_t data_size = size;
+
     if (size > GetSize())
       throw out_of_range("[CircularBuffer] Not enough data to read");
 
@@ -83,12 +89,12 @@ namespace ELB
 
   void CircularBuffer::Write(const std::vector<char>& data)
   {
-    uint32_t data_size = data.size();
+    const uint32_t data_size = data.size();
 
     if (data_size > GetFreeSize())
       throw overflow_error("[CircularBuffer] Not enough space to write");
-    
    
+      lock_guard<recursive_mutex> guard(write_mutex_);
       const uint32_t first_part_size = min(capacity_ - write_index_, data_size);
       copy(begin(data), begin(data) + first_part_size, begin(buffer_) + write_index_);
       write_index_ += first_part_size;
