@@ -25,7 +25,7 @@ public:
   CircularBuffer(const uint32_t capacity);
   ~CircularBuffer();
   uint32_t GetSize();
-  uint32_t GetCapacity();
+  uint32_t GetCapacity() const;
   uint32_t GetFreeSize();
   bool IsEmpty();
   bool IsFull();
@@ -39,6 +39,8 @@ private:
   uint32_t read_index_;
   uint32_t write_index_;
   std::recursive_mutex write_mutex_;
+  std::recursive_mutex read_mutex_;
+  uint32_t GetReadIndex();
 };
 
 }

@@ -285,7 +285,7 @@ TEST(multithread, write)
   EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
   EXPECT_EQ(0, buffer.GetFreeSize());
 }
-/*
+
 TEST(multithread, read)
 {
   constexpr uint32_t READ_SIZE[]{74, 53};
@@ -293,36 +293,35 @@ TEST(multithread, read)
   constexpr auto BUFFER_SIZE{READ_COUNT * (READ_SIZE[0] + READ_SIZE[1])};
   CircularBuffer buffer{BUFFER_SIZE};
 
-  vector<char> fill_buffer(BUFFER_SIZE);
-  buffer.Write(fill_buffer);
+  {
+    vector<char> fill_buffer(BUFFER_SIZE);
+    buffer.Write(fill_buffer);
+  }
 
-  EXPECT_EQ(0, buffer.GetSize());
-  EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
+  EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
+  EXPECT_EQ(0, buffer.GetFreeSize());
 
   const auto read_process = [](CircularBuffer& buffer, const uint32_t read_size, uint32_t read_count)
   {
-    while (read_count--) {
+    while (read_count--)
       const auto cache = buffer.Read(read_size);
-    }
   };
 
   constexpr uint32_t THREADS_COUNT{2};
   thread read_threads[THREADS_COUNT];
 
-  for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
+  for (uint32_t index = 0; index < THREADS_COUNT; ++index)
     read_threads[index] = thread(read_process, std::ref(buffer), READ_SIZE[index], READ_COUNT);
-  }
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
-    if (read_threads[index].joinable()) {
+    if (read_threads[index].joinable())
       read_threads[index].join();
-    }
   }
 
-  EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
-  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(0, buffer.GetSize());
+  EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
 }
-
+/*
 TEST(multithread, verification)
 {
   constexpr auto TRANSFER_SIZE{1 * 1024 * 1024 * 1024};

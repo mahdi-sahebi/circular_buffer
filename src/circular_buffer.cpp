@@ -23,9 +23,15 @@ namespace ELB
   {
   }
 
-  uint32_t CircularBuffer::GetCapacity()
+  uint32_t CircularBuffer::GetCapacity() const
   {
     return capacity_;
+  }
+
+  uint32_t CircularBuffer::GetReadIndex()
+  {
+    lock_guard<recursive_mutex> guard(read_mutex_);
+    return read_index_;
   }
 
   uint32_t CircularBuffer::GetSize()
@@ -33,12 +39,12 @@ namespace ELB
     write_mutex_.lock();
     const uint32_t write_index = write_index_; 
     write_mutex_.unlock();
+    const uint32_t read_index = GetReadIndex();
 
+    uint32_t size = write_index - read_index;
 
-    uint32_t size = write_index - read_index_;
-
-    if (write_index < read_index_)
-      size = capacity_ - write_index - read_index_;
+    if (write_index < read_index)
+      size = capacity_ - write_index - read_index;
 
     return size;
   }
@@ -60,6 +66,7 @@ namespace ELB
 
   void CircularBuffer::Clear()
   {
+    // TODO(MN): Thread safety
     write_index_ = 0;
     read_index_ = 0;
   }
@@ -74,6 +81,7 @@ namespace ELB
     // TODO(MN): Optimize return vector
     vector<char> data;
 
+    lock_guard<recursive_mutex> guard(read_mutex_);
     const uint32_t first_part_size = min(capacity_ - read_index_, data_size);
     data.insert(cend(data), cbegin(buffer_) + read_index_, cbegin(buffer_) + read_index_ + first_part_size);
     read_index_ += first_part_size;
@@ -94,16 +102,16 @@ namespace ELB
     if (data_size > GetFreeSize())
       throw overflow_error("[CircularBuffer] Not enough space to write");
    
-      lock_guard<recursive_mutex> guard(write_mutex_);
-      const uint32_t first_part_size = min(capacity_ - write_index_, data_size);
-      copy(begin(data), begin(data) + first_part_size, begin(buffer_) + write_index_);
-      write_index_ += first_part_size;
+    lock_guard<recursive_mutex> guard(write_mutex_);
+    const uint32_t first_part_size = min(capacity_ - write_index_, data_size);
+    copy(begin(data), begin(data) + first_part_size, begin(buffer_) + write_index_);
+    write_index_ += first_part_size;
 
-      const uint32_t second_part_size = data_size - first_part_size;
-      if (second_part_size) {
-        copy(begin(data) + first_part_size, end(data), begin(buffer_));
-        write_index_ = (write_index_ + second_part_size) % capacity_;
-      }
+    const uint32_t second_part_size = data_size - first_part_size;
+    if (second_part_size) {
+      copy(begin(data) + first_part_size, end(data), begin(buffer_));
+      write_index_ = (write_index_ + second_part_size) % capacity_;
+    }
   }
 
 }
