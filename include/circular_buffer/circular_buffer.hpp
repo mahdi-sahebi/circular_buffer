@@ -41,6 +41,7 @@ private:
   std::recursive_mutex write_mutex_;
   std::recursive_mutex read_mutex_;
   uint32_t GetReadIndex();
+  uint32_t GetWriteIndex();
 };
 
 }

@@ -28,6 +28,12 @@ namespace ELB
     return capacity_;
   }
 
+  uint32_t CircularBuffer::GetWriteIndex()
+  {
+    lock_guard<recursive_mutex> guard(write_mutex_);
+    return write_index_;
+  }
+
   uint32_t CircularBuffer::GetReadIndex()
   {
     lock_guard<recursive_mutex> guard(read_mutex_);
@@ -36,10 +42,8 @@ namespace ELB
 
   uint32_t CircularBuffer::GetSize()
   {
-    write_mutex_.lock();
-    const uint32_t write_index = write_index_; 
-    write_mutex_.unlock();
-    const uint32_t read_index = GetReadIndex();
+    const uint32_t write_index = GetWriteIndex(); 
+    const uint32_t read_index  = GetReadIndex();
 
     uint32_t size = write_index - read_index;
 
