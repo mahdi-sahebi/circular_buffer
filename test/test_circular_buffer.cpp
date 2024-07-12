@@ -11,6 +11,7 @@
 
 
 using namespace std;
+using namespace std::this_thread;
 using namespace std::chrono;
 using namespace ELB;
 
@@ -321,10 +322,11 @@ TEST(multithread, read)
   EXPECT_EQ(0, buffer.GetSize());
   EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
 }
-/*
+
 TEST(multithread, verification)
 {
-  constexpr auto TRANSFER_SIZE{1 * 1024 * 1024 * 1024};
+  // constexpr auto TRANSFER_SIZE{1 * 1024 * 1024 * 1024};
+  constexpr auto TRANSFER_SIZE{32 * 1024};
   constexpr auto BUFFER_SIZE{32 * 1024};
   CircularBuffer buffer{BUFFER_SIZE};
 
@@ -332,7 +334,7 @@ TEST(multithread, verification)
   {
     auto ransfer_size{TRANSFER_SIZE};
     char counter{0};
-    vector<char> cache(7);
+    vector<char> cache(32);
 
     while (ransfer_size) {
       for (auto& itr : cache) {
@@ -349,9 +351,13 @@ TEST(multithread, verification)
   {
     auto ransfer_size{TRANSFER_SIZE};
     char counter{0};
-    const auto READ_SIZE{7 * 2};
+    const auto READ_SIZE{32 * 2};
+    uint32_t read_size{0};
 
     while (ransfer_size) {
+      while (buffer.GetSize() < READ_SIZE)
+        sleep_for(microseconds(1));
+
       const auto cache = buffer.Read(READ_SIZE);
 
       for (auto& itr : cache) {
@@ -359,10 +365,11 @@ TEST(multithread, verification)
         ++counter;
       }
 
+      read_size += cache.size();
       ransfer_size -= cache.size();
     }
 
-    EXPECT_EQ(counter, TRANSFER_SIZE);
+    EXPECT_EQ(read_size, TRANSFER_SIZE);
   });
 
   if (write_thread.joinable())
@@ -373,7 +380,7 @@ TEST(multithread, verification)
   EXPECT_EQ(0, buffer.GetSize());
   EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
 }
-*/
+
 int main()
 {
   testing::InitGoogleTest();
