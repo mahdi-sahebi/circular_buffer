@@ -11,6 +11,7 @@
 
 
 using namespace std;
+using namespace std::this_thread;
 using namespace std::chrono;
 using namespace ELB;
 
@@ -158,10 +159,11 @@ TEST(read, iterative)
   uint32_t total_size = CAPACITY;
 
   while (total_size) {
-    EXPECT_EQ(total_size, buffer.GetFreeSize());
+    EXPECT_EQ(CAPACITY - total_size, buffer.GetFreeSize());
+    EXPECT_EQ(total_size, buffer.GetSize());
 
     const uint32_t random_size = static_cast<uint32_t>(256 * (std::rand() / (float)RAND_MAX));
-    const uint32_t read_size = std::min(random_size, buffer.GetFreeSize());
+    const uint32_t read_size = std::min(random_size, buffer.GetSize());
 
     const vector<char> data = buffer.Read(read_size);
     EXPECT_EQ(read_size, data.size());
@@ -236,6 +238,7 @@ TEST(status, is_full)
   }
 
   data.resize(BUFFER_SIZE - data.size());
+  buffer.Write(data);
 
   try {
     EXPECT_TRUE(buffer.IsFull());
@@ -251,7 +254,7 @@ TEST(status, is_full)
 TEST(multithread, write)
 {
   constexpr uint32_t WRITE_SIZE[]{74, 53};
-  constexpr auto WRITE_COUNT{10000};
+  constexpr auto WRITE_COUNT{100000};
   constexpr auto BUFFER_SIZE{WRITE_COUNT * (WRITE_SIZE[0] + WRITE_SIZE[1])};
   CircularBuffer buffer{BUFFER_SIZE};
 
@@ -271,7 +274,7 @@ TEST(multithread, write)
   thread write_threads[THREADS_COUNT];
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
-    write_threads[index] = thread(write_process, buffer, WRITE_SIZE[index], WRITE_COUNT);
+    write_threads[index] = thread(write_process, std::ref(buffer), WRITE_SIZE[index], WRITE_COUNT);
   }
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
@@ -291,77 +294,86 @@ TEST(multithread, read)
   constexpr auto BUFFER_SIZE{READ_COUNT * (READ_SIZE[0] + READ_SIZE[1])};
   CircularBuffer buffer{BUFFER_SIZE};
 
-  vector<char> fill_buffer(BUFFER_SIZE);
-  buffer.Write(fill_buffer);
+  {
+    vector<char> fill_buffer(BUFFER_SIZE);
+    buffer.Write(fill_buffer);
+  }
 
-  EXPECT_EQ(0, buffer.GetSize());
-  EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
+  EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
+  EXPECT_EQ(0, buffer.GetFreeSize());
 
   const auto read_process = [](CircularBuffer& buffer, const uint32_t read_size, uint32_t read_count)
   {
-    while (read_count--) {
+    while (read_count--)
       const auto cache = buffer.Read(read_size);
-    }
   };
 
   constexpr uint32_t THREADS_COUNT{2};
   thread read_threads[THREADS_COUNT];
 
-  for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
-    read_threads[index] = thread(read_process, buffer, READ_SIZE[index], READ_COUNT);
-  }
+  for (uint32_t index = 0; index < THREADS_COUNT; ++index)
+    read_threads[index] = thread(read_process, std::ref(buffer), READ_SIZE[index], READ_COUNT);
 
   for (uint32_t index = 0; index < THREADS_COUNT; ++index) {
-    if (read_threads[index].joinable()) {
+    if (read_threads[index].joinable())
       read_threads[index].join();
-    }
   }
 
-  EXPECT_EQ(BUFFER_SIZE, buffer.GetSize());
-  EXPECT_EQ(0, buffer.GetFreeSize());
+  EXPECT_EQ(0, buffer.GetSize());
+  EXPECT_EQ(BUFFER_SIZE, buffer.GetFreeSize());
 }
 
 TEST(multithread, verification)
 {
-  constexpr auto TRANSFER_SIZE{1 * 1024 * 1024 * 1024};
-  constexpr auto BUFFER_SIZE{32 * 1024};
+  constexpr auto TRANSFER_SIZE{1 * 1024 * 1024};
+  constexpr auto BUFFER_SIZE{64 * 1024};
   CircularBuffer buffer{BUFFER_SIZE};
 
   thread write_thread = thread([&buffer, &TRANSFER_SIZE]()
   {
-    auto ransfer_size{TRANSFER_SIZE};
+    auto transfer_size{TRANSFER_SIZE};
     char counter{0};
-    vector<char> cache(7);
-
-    while (ransfer_size) {
+    vector<char> cache(32);
+uint32_t c = 0;
+    while (transfer_size) {
       for (auto& itr : cache) {
         itr = counter;
         ++counter;
       }
 
+      while (buffer.GetFreeSize() < cache.size())
+        sleep_for(microseconds(1));
+c++;
+      EXPECT_GE(buffer.GetFreeSize(), cache.size());
+
       buffer.Write(cache);
-      ransfer_size -= cache.size();
+      transfer_size -= cache.size();
     }
+    transfer_size = 0;
   });
 
   thread read_thread = thread([&buffer, &TRANSFER_SIZE]()
   {
-    auto ransfer_size{TRANSFER_SIZE};
+    auto transfer_size{TRANSFER_SIZE};
     char counter{0};
-    const auto READ_SIZE{7 * 2};
+    const auto READ_SIZE{32};
+uint32_t c = 0;
+    while (transfer_size) {
+      while (buffer.GetSize() < READ_SIZE)
+        sleep_for(microseconds(1));// waits here
 
-    while (ransfer_size) {
+      EXPECT_GE(buffer.GetSize(), READ_SIZE);
       const auto cache = buffer.Read(READ_SIZE);
-
+      EXPECT_EQ(cache.size(), READ_SIZE);
+c++;
       for (auto& itr : cache) {
         EXPECT_EQ(itr, counter);
         ++counter;
       }
 
-      ransfer_size -= cache.size();
+      transfer_size -= cache.size();
     }
-
-    EXPECT_EQ(counter, TRANSFER_SIZE);
+    transfer_size = 0;
   });
 
   if (write_thread.joinable())

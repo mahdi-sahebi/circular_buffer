@@ -1,8 +1,18 @@
-set(sources test_circular_buffer.cpp)
-set(test ${PROJECT_NAME}_test)
+option(BUILD_TESTS "To build the tests" OFF)
 
-add_executable(${test} ${sources})
+if (BUILD_TESTS)
+    message(STATUS "Building tests")
+    
+    set(sources test_circular_buffer.cpp)
+    set(test ${PROJECT_NAME}_test)
 
-find_package(GTest REQUIRED)
-target_include_directories(${test} PRIVATE ${GTEST_INCLUDE_DIR})
-target_link_libraries(${test} GTest::gtest GTest::gtest_main ${PROJECT_NAME})
+    add_executable(${test} ${sources})
+
+    find_package(GTest REQUIRED)
+    target_include_directories(${test} 
+        PRIVATE ${GTEST_INCLUDE_DIR})
+    target_link_libraries(${test} 
+        PRIVATE GTest::gtest 
+        PRIVATE GTest::gtest_main 
+        PRIVATE ${PROJECT_NAME})
+endif()

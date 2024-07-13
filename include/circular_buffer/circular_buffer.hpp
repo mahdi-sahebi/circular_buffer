@@ -7,10 +7,13 @@
 // TODO(MN): Test of GetSize
 // TODO(MN): Read/Write simple array APIs
 // TODO(MN): Verify write/read APIs data
+// TODO(NM): const functions. noexcept function
 
 #include <cstdbool>
 #include <cstdint>
 #include <vector>
+#include <mutex>
+
 
 namespace ELB
 {
@@ -23,10 +26,11 @@ public:
   CircularBuffer(const uint32_t capacity);
   ~CircularBuffer();
   uint32_t GetSize();
-  uint32_t GetCapacity();
+  uint32_t GetCapacity() const;
   uint32_t GetFreeSize();
   bool IsEmpty();
   bool IsFull();
+  void Clear();
   std::vector<char> Read(const uint32_t size);
   void Write(const std::vector<char>& data);
 
@@ -35,6 +39,10 @@ private:
   const uint32_t capacity_;
   uint32_t read_index_;
   uint32_t write_index_;
+  uint32_t free_size_;
+  std::recursive_mutex mutex_;
+  uint32_t GetReadIndex();
+  uint32_t GetWriteIndex();
 };
 
 }
