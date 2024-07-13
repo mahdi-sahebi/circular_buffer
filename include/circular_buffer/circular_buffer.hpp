@@ -7,6 +7,7 @@
 // TODO(MN): Test of GetSize
 // TODO(MN): Read/Write simple array APIs
 // TODO(MN): Verify write/read APIs data
+// TODO(NM): const functions. noexcept function
 
 #include <cstdbool>
 #include <cstdint>
@@ -38,8 +39,8 @@ private:
   const uint32_t capacity_;
   uint32_t read_index_;
   uint32_t write_index_;
-  std::recursive_mutex write_mutex_;
-  std::recursive_mutex read_mutex_;
+  uint32_t free_size_;
+  std::recursive_mutex mutex_;
   uint32_t GetReadIndex();
   uint32_t GetWriteIndex();
 };

@@ -325,51 +325,55 @@ TEST(multithread, read)
 
 TEST(multithread, verification)
 {
-  // constexpr auto TRANSFER_SIZE{1 * 1024 * 1024 * 1024};
-  constexpr auto TRANSFER_SIZE{32 * 1024};
-  constexpr auto BUFFER_SIZE{32 * 1024};
+  constexpr auto TRANSFER_SIZE{1 * 1024 * 1024};
+  constexpr auto BUFFER_SIZE{64 * 1024};
   CircularBuffer buffer{BUFFER_SIZE};
 
   thread write_thread = thread([&buffer, &TRANSFER_SIZE]()
   {
-    auto ransfer_size{TRANSFER_SIZE};
+    auto transfer_size{TRANSFER_SIZE};
     char counter{0};
     vector<char> cache(32);
-
-    while (ransfer_size) {
+uint32_t c = 0;
+    while (transfer_size) {
       for (auto& itr : cache) {
         itr = counter;
         ++counter;
       }
 
+      while (buffer.GetFreeSize() < cache.size())
+        sleep_for(microseconds(1));
+c++;
+      EXPECT_GE(buffer.GetFreeSize(), cache.size());
+
       buffer.Write(cache);
-      ransfer_size -= cache.size();
+      transfer_size -= cache.size();
     }
+    transfer_size = 0;
   });
 
   thread read_thread = thread([&buffer, &TRANSFER_SIZE]()
   {
-    auto ransfer_size{TRANSFER_SIZE};
+    auto transfer_size{TRANSFER_SIZE};
     char counter{0};
-    const auto READ_SIZE{32 * 2};
-    uint32_t read_size{0};
-
-    while (ransfer_size) {
+    const auto READ_SIZE{32};
+uint32_t c = 0;
+    while (transfer_size) {
       while (buffer.GetSize() < READ_SIZE)
-        sleep_for(microseconds(1));
+        sleep_for(microseconds(1));// waits here
 
+      EXPECT_GE(buffer.GetSize(), READ_SIZE);
       const auto cache = buffer.Read(READ_SIZE);
-
+      EXPECT_EQ(cache.size(), READ_SIZE);
+c++;
       for (auto& itr : cache) {
         EXPECT_EQ(itr, counter);
         ++counter;
       }
 
-      read_size += cache.size();
-      ransfer_size -= cache.size();
+      transfer_size -= cache.size();
     }
-
-    EXPECT_EQ(read_size, TRANSFER_SIZE);
+    transfer_size = 0;
   });
 
   if (write_thread.joinable())
