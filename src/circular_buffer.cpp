@@ -24,48 +24,46 @@ namespace ELB
   {
   }
 
-  uint32_t CircularBuffer::GetCapacity() const
+  uint32_t CircularBuffer::GetCapacity() const noexcept
   {
     return capacity_;
   }
 
-  uint32_t CircularBuffer::GetWriteIndex()
+  uint32_t CircularBuffer::GetWriteIndex() noexcept
   {
     lock_guard<recursive_mutex> guard(mutex_);
     return write_index_;
   }
 
-  uint32_t CircularBuffer::GetReadIndex()
+  uint32_t CircularBuffer::GetReadIndex() noexcept
   {
     lock_guard<recursive_mutex> guard(mutex_);
     return read_index_;
   }
 
-  uint32_t CircularBuffer::GetSize()
+  uint32_t CircularBuffer::GetSize() noexcept
   {
     lock_guard<recursive_mutex> guard(mutex_);
-
     return capacity_ - free_size_;
   }
 
-  uint32_t CircularBuffer::GetFreeSize()
+  uint32_t CircularBuffer::GetFreeSize() noexcept
   {
     lock_guard<recursive_mutex> guard(mutex_);
-
     return free_size_;
   }
 
-  bool CircularBuffer::IsEmpty()
+  bool CircularBuffer::IsEmpty() noexcept
   {
     return (capacity_ == GetFreeSize());
   }
 
-  bool CircularBuffer::IsFull()
+  bool CircularBuffer::IsFull() noexcept
   {
     return (0 == GetFreeSize());
   }
 
-  void CircularBuffer::Clear()
+  void CircularBuffer::Clear() noexcept
   {
     lock_guard<recursive_mutex> guard(mutex_);
 
