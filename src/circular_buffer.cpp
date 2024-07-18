@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
 #include "circular_buffer/circular_buffer.hpp"
 
@@ -101,19 +102,24 @@ namespace ELB
 
   void CircularBuffer::Write(const std::vector<char>& data)
   {
-    const uint32_t data_size = data.size();
+    Write(data.data(), data.size());
+  }
+
+  void CircularBuffer::Write(const char* const data, const uint32_t size)
+  {
+    const uint32_t data_size = size;
     if (data_size > GetFreeSize()) {
       throw overflow_error("[CircularBuffer] Not enough space to write");
     }
 
     unique_lock<recursive_mutex> guard(mutex_);
     const uint32_t first_part_size = min(capacity_ - write_index_, data_size);
-    copy(begin(data), begin(data) + first_part_size, begin(buffer_) + write_index_);
+    copy(data, data + first_part_size, begin(buffer_) + write_index_);
     write_index_ += first_part_size;
 
     const uint32_t second_part_size = data_size - first_part_size;
     if (second_part_size) {
-      copy(begin(data) + first_part_size, end(data), begin(buffer_));
+      copy(data + first_part_size, data, begin(buffer_));
       write_index_ = (write_index_ + second_part_size) % capacity_;
     }
 

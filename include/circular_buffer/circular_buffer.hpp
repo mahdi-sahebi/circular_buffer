@@ -1,12 +1,6 @@
 #ifndef ELB_CIRCULAR_BUFFER_H_
 #define ELB_CIRCULAR_BUFFER_H_
 
-// TODO(MN): Tests of is_empty/is_full
-// TODO(MN): Thread safety and its test, write/process/read - counter generator
-// TODO(MN): Read/Write/GetFreeSize test for two part mode
-// TODO(MN): Test of GetSize
-// TODO(MN): Read/Write simple array APIs
-// TODO(MN): Verify write/read APIs data
 // TODO(NM): const functions. noexcept function
 
 #include <cstdbool>
@@ -33,6 +27,7 @@ public:
   void Clear();
   std::vector<char> Read(const uint32_t size);
   void Write(const std::vector<char>& data);
+  void Write(const char* const data, const uint32_t size);
 
 private:
   std::vector<char> buffer_;
