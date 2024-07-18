@@ -12,22 +12,36 @@
 namespace ELB
 {
 
-class CircularBuffer
+class Buffer
+{
+public:
+  virtual uint32_t GetSize() = 0;
+  virtual uint32_t GetCapacity() const = 0;
+  virtual uint32_t GetFreeSize() = 0;
+  virtual bool IsEmpty() = 0;
+  virtual bool IsFull() = 0;
+  virtual void Clear() = 0;
+  virtual std::vector<char> Read(const uint32_t size) = 0;
+  virtual void Write(const std::vector<char>& data) = 0;
+  virtual void Write(const char* const data, const uint32_t size) = 0;
+};
+
+class CircularBuffer : public Buffer
 {
 public:
   CircularBuffer() = delete;
   CircularBuffer(const CircularBuffer&) = delete;
   CircularBuffer(const uint32_t capacity);
   ~CircularBuffer();
-  uint32_t GetSize();
-  uint32_t GetCapacity() const;
-  uint32_t GetFreeSize();
-  bool IsEmpty();
-  bool IsFull();
-  void Clear();
-  std::vector<char> Read(const uint32_t size);
-  void Write(const std::vector<char>& data);
-  void Write(const char* const data, const uint32_t size);
+  uint32_t GetSize() override;
+  uint32_t GetCapacity() const override;
+  uint32_t GetFreeSize() override;
+  bool IsEmpty() override;
+  bool IsFull() override;
+  void Clear() override;
+  std::vector<char> Read(const uint32_t size) override;
+  void Write(const std::vector<char>& data) override;
+  void Write(const char* const data, const uint32_t size) override;
 
 private:
   std::vector<char> buffer_;
